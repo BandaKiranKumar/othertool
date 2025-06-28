@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kafka.fullname" . }}-config
+data:
+  server.properties: |
+    broker.id=0
+    log.dirs=/bitnami/kafka/data
+    zookeeper.connect=zookeeper:2181
