@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "cassandra.fullname" . }}
+spec:
+  serviceName: {{ include "cassandra.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "cassandra.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "cassandra.name" . }}
+    spec:
+      containers:
+        - name: cassandra
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 9042
+              name: cql
+          env:
+            - name: CASSANDRA_CLUSTER_NAME
+              value: "Cassandra"
+            - name: CASSANDRA_SEEDS
+              value: "{{ include "cassandra.fullname" . }}-0.{{ include "cassandra.fullname" . }}"
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/cassandra
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "cassandra.fullname" . }}-pvc
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: {{ .Values.persistence.accessModes }}
+        resources:
+          requests:
+            storage: {{ .Values.storage.size }}
+        storageClassName: {{ .Values.storage.className | quote }}
